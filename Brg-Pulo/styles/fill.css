@@ -1,0 +1,133 @@
+/* Base styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background-color: #f4f4f4;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Form container */
+.form-container {
+    background-color: #ffffff;
+    padding: 30px 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 480px;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Form heading */
+.form-container h2 {
+    text-align: center;
+    color: #002F87;
+    margin-bottom: 25px;
+    font-size: 1.6rem;
+}
+
+/* Labels */
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus {
+    outline: none;
+    border-color: #002F87;
+}
+
+/* Readonly field style */
+input[readonly] {
+    background-color: #f0f0f0;
+    color: #555;
+    cursor: not-allowed;
+}
+
+/* Dropdown (select) specific styling */
+select {
+    appearance: none; /* Removes default dropdown arrow in some browsers */
+    background-color: #fff;
+    background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 7"%3E%3Cpath fill="none" stroke="%23bbb" stroke-width="1" d="M1 1l5 5 5-5"%3E%3C/path%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 40px; /* Space for dropdown arrow */
+    cursor: pointer;
+}
+
+/* Submit button */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #002F87;
+    color: white;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0043b5;
+}
+
+/* Message styles */
+.success-msg,
+.error-msg {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+.success-msg {
+    color: green;
+}
+
+.error-msg {
+    color: red;
+}
+
+/* Responsive tweaks */
+@media (max-width: 500px) {
+    .form-container {
+        padding: 20px 15px;
+    }
+
+    .form-container h2 {
+        font-size: 1.4rem;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select,
+    button {
+        font-size: 1rem;
+    }
+}

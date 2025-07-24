@@ -1,0 +1,84 @@
+@page {
+  size: 8.5in 13in; /* Long bond paper */
+  margin: 2cm;
+}
+
+body {
+  font-family: 'Times New Roman', serif;
+  background-color: #fff;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  height: auto;
+}
+
+.certificate-container {
+  width: 100%;
+  max-width: 800px;
+  padding: 30px 40px;
+  border: 2px solid #002F87;
+  border-radius: 10px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  margin-top: 20px;
+  page-break-inside: avoid;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header img {
+  width: 90px;
+  height: 90px;
+  margin-bottom: 10px;
+}
+
+.header h1,
+.header h2 {
+  margin: 3px 0;
+  color: #002F87;
+}
+
+.title {
+  text-align: center;
+  margin: 30px 0 20px 0;
+}
+
+.title h2 {
+  font-size: 20pt;
+  color: #000;
+}
+
+.content {
+  font-size: 14pt;
+  line-height: 1.8;
+  color: #000;
+  text-align: justify;
+}
+
+.footer {
+  margin-top: 50px;
+  font-size: 14pt;
+  color: #000;
+}
+
+.signature {
+  text-align: right;
+  margin-top: 60px;
+  font-weight: bold;
+}
+
+@media print {
+  body {
+    background: none;
+    box-shadow: none;
+  }
+
+  .certificate-container {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}

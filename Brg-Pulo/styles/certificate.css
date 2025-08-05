@@ -1,177 +1,33 @@
-<?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "brg-pulo";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
+body {
+  font-family: 'Times New Roman', serif;
+  margin: 0;
+  padding: 30px;
+  background: #fff;
+  color: #000;
 }
 
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-
-$name = "";
-$date_of_request = "";
-$certificate_type = "";
-
-if ($id > 0) {
-  $stmt = $conn->prepare("SELECT name, date, certificate_type FROM request WHERE id = ?");
-  $stmt->bind_param("i", $id);
-  $stmt->execute();
-  $result = $stmt->get_result();
-
-  if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $name = $row['name'];
-    $date_of_request = date("jS \of F, Y", strtotime($row['date']));
-    $certificate_type = $row['certificate_type'];
-  }
-
-  $stmt->close();
+.certificate-container {
+  max-width: 800px;
+  margin: 0 auto;
+  border: 3px solid #000;
+  padding: 40px;
+  background-color: #f9f9f9;
 }
 
-$conn->close();
+.header, .title, .footer {
+  text-align: center;
+}
 
-$clean_name = htmlspecialchars($name ?: '[Name]');
-$clean_type = ucwords(strtolower($certificate_type ?: 'Certificate'));
-$is_indigency = (strtolower($certificate_type) === 'certificate of indigency');
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title><?= htmlspecialchars($clean_type) ?> - Barangay Certificate</title>
-  <link rel="stylesheet" href="../styles/certificate.css">
-  <style>
-    body {
-      font-family: 'Times New Roman', serif;
-      background-color: #fff;
-      color: #000;
-      padding: 40px;
-    }
+.seal {
+  width: 100px;
+  margin-bottom: 10px;
+}
 
-    .certificate-container {
-      max-width: 800px;
-      margin: auto;
-      border: 3px solid #333;
-      padding: 50px;
-      background: #fafafa;
-      position: relative;
-    }
+.content p {
+  text-align: justify;
+  margin: 15px 0;
+}
 
-    .certificate-container img {
-      width: 100px;
-      display: block;
-      margin: 0 auto 15px;
-    }
-
-    .text-center {
-      text-align: center;
-    }
-
-    .title h2 {
-      font-size: 24px;
-      font-weight: bold;
-      text-decoration: underline;
-      margin: 25px 0;
-    }
-
-    .content p {
-      font-size: 16px;
-      text-align: justify;
-      margin-bottom: 15px;
-      line-height: 1.7;
-    }
-
-    .footer {
-      margin-top: 60px;
-      text-align: right;
-    }
-
-    .footer p {
-      margin-bottom: 5px;
-    }
-
-    @media print {
-      #printBtn {
-        display: none;
-      }
-
-      body {
-        margin: 0;
-      }
-
-      .certificate-container {
-        border: none;
-        padding: 0;
-      }
-    }
-
-    #printBtn {
-      position: fixed;
-      top: 30px;
-      right: 40px;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    #printBtn:hover {
-      background-color: #1d4ed8;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Print Button -->
-  <button id="printBtn" onclick="window.print()">🖨️ Print / Download</button>
-
-  <!-- Certificate -->
-  <div class="certificate-container">
-    <div class="text-center">
-      <img src="../images/OfficialSeal.png" alt="Barangay Seal">
-      <h1>Republic of the Philippines</h1>
-      <h2>Province of Lanao del Sur</h2>
-      <h2>Marawi City</h2>
-      <h2><strong>BARANGAY TOROS</strong></h2>
-    </div>
-
-    <div class="title text-center">
-      <h2><?= strtoupper($clean_type) ?></h2>
-    </div>
-
-    <div class="content">
-      <p><strong>TO WHOM IT MAY CONCERN:</strong></p>
-      <p>
-        This is to certify that <strong><?= $clean_name ?></strong>,
-        <?php if ($is_indigency): ?>
-          widow, 70 years old, Filipino citizen, is a resident of this barangay and belongs to an indigent family. She has no means of livelihood to support her medication and hospitalization needs.
-        <?php else: ?>
-          is a legal resident of this barangay.
-        <?php endif; ?>
-      </p>
-      <p>
-        <?php if ($is_indigency): ?>
-          This certification is issued as a requirement for medical assistance to be processed by her daughter <strong>RAYNIDAH M. DIPATUAN</strong>, and for whatever legal purpose it may serve her.
-        <?php else: ?>
-          This certification is issued to confirm that <strong><?= $clean_name ?></strong> resides in Barangay Toros, Marawi City.
-        <?php endif; ?>
-      </p>
-      <p>
-        Issued this <strong><?= $date_of_request ?: '[Date not provided]' ?></strong> at Barangay Toros, Marawi City, Philippines.
-      </p>
-    </div>
-
-    <div class="footer">
-      <p>Certified Correct:</p><br><br>
-      <p><strong>HON. NIDRALDEN A. USMAN</strong><br>Barangay Chairman</p>
-    </div>
-  </div>
-
-</body>
-</html>
+.footer {
+  margin-top: 60px;
+}

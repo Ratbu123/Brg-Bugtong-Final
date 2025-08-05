@@ -10,37 +10,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     $username = $conn->real_escape_string($_POST['username']);
-    $password = $conn->real_escape_string($_POST['password']);
+    $password = $_POST['password']; // Don't escape here, use raw for password_verify
 
     // 1. Try login from `b-official`
-    $sql_official = "SELECT * FROM `b-official` WHERE email = '$username' AND password = '$password'";
+    $sql_official = "SELECT * FROM `b-official` WHERE email = '$username'";
     $result_official = $conn->query($sql_official);
 
     if ($result_official && $result_official->num_rows === 1) {
         $user = $result_official->fetch_assoc();
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['fname'] . ' ' . $user['lname'];
-        $_SESSION['position'] = $user['position'];
-        $_SESSION['user_picture'] = !empty($user['picture']) ? $user['picture'] : 'images/sub/usericon.png';
-        $_SESSION['role'] = 'official';
 
-        header("Location: off-admin.php"); // Redirect to official admin panel
-        exit();
+        if (password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['fname'] . ' ' . $user['lname'];
+            $_SESSION['position'] = $user['position'];
+            $_SESSION['user_picture'] = !empty($user['picture']) ? $user['picture'] : 'images/sub/usericon.png';
+            $_SESSION['role'] = 'official';
 
-    } else {
-        // 2. Try login from `mainadmin`
-        $sql_admin = "SELECT * FROM `mainadmin` WHERE username = '$username' AND password = '$password'";
-        $result_admin = $conn->query($sql_admin);
-
-        if ($result_admin && $result_admin->num_rows === 1) {
-            $_SESSION['user_name'] = $username;
-            $_SESSION['role'] = 'mainadmin';
-
-            header("Location: admin.php"); // Redirect to main admin panel
+            header("Location: off-admin.php"); // Redirect to official admin panel
             exit();
-        } else {
-            $loginError = "Invalid username or password.";
         }
+    }
+
+    // 2. Try login from `mainadmin`
+    $sql_admin = "SELECT * FROM `mainadmin` WHERE username = '$username' AND password = '$password'";
+    $result_admin = $conn->query($sql_admin);
+
+    if ($result_admin && $result_admin->num_rows === 1) {
+        $_SESSION['user_name'] = $username;
+        $_SESSION['role'] = 'mainadmin';
+
+        header("Location: admin.php"); // Redirect to main admin panel
+        exit();
+    } else {
+        $loginError = "Invalid username or password.";
     }
 
     $conn->close();

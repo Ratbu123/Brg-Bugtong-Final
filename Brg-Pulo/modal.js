@@ -1,40 +1,44 @@
-// js/modal.js
+// modal.js
 
 // Function to open the modal and load the residents
 function openModal(barangay) {
-    // Get the residents data from PHP (using JSON encoding)
-    const residents = JSON.parse('<?php echo json_encode($residents); ?>');
-    const puroks = residents[barangay] || {};
+    try {
+        const residents = JSON.parse(document.getElementById('residentData').textContent);
+        const puroks = residents[barangay] || {};
 
-    // Set barangay name
-    document.getElementById('barangay-name').textContent = barangay;
+        document.getElementById('barangay-name').textContent = barangay;
 
-    let residentHtml = '';
-    for (const purok in puroks) {
-        residentHtml += `<h3>${purok}</h3><ul>`;
-        puroks[purok].forEach(resident => {
+        let residentHtml = '';
+        for (const purok in puroks) {
             residentHtml += `
-                <li class="resident-card">
-                    <img src="${resident.profile || '../images/sub/usericon.png'}" alt="Profile">
-                    <div class="info">
-                        <strong>${resident.lname}, ${resident.fname} ${resident.mname}</strong><br>
-                        Age: ${resident.age} | Status: ${resident['c-status']}<br>
-                        Contact: ${resident.number}
-                    </div>
-                </li>
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-2">${purok}</h3>
+                    <ul class="space-y-2">
             `;
-        });
-        residentHtml += '</ul>';
+            puroks[purok].forEach(resident => {
+                residentHtml += `
+                    <li class="flex items-center bg-white rounded-lg shadow p-4">
+                        <img src="${resident.profile || '../images/sub/usericon.png'}" alt="Profile" class="w-12 h-12 rounded-full mr-4 border">
+                        <div class="text-sm">
+                            <p class="font-medium text-gray-900">${resident.lname}, ${resident.fname} ${resident.mname}</p>
+                            <p class="text-gray-700">Age: ${resident.age} | Status: ${resident['c-status']}</p>
+                            <p class="text-gray-600">📱 ${resident.number}</p>
+                        </div>
+                    </li>
+                `;
+            });
+            residentHtml += `</ul></div>`;
+        }
+
+        document.getElementById('resident-list').innerHTML = residentHtml;
+        document.getElementById('modal').classList.remove('hidden');
+    } catch (error) {
+        console.error("Error loading resident data:", error);
+        document.getElementById('resident-list').innerHTML = `<p class="text-red-600">⚠️ Failed to load resident data.</p>`;
     }
-
-    // Inject the resident list HTML into the modal
-    document.getElementById('resident-list').innerHTML = residentHtml;
-
-    // Display the modal
-    document.getElementById('modal').style.display = 'flex';
 }
 
 // Function to close the modal
 function closeModal() {
-    document.getElementById('modal').style.display = 'none';
+    document.getElementById('modal').classList.add('hidden');
 }

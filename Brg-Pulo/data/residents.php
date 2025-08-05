@@ -16,13 +16,13 @@ if (isset($_GET['delete'])) {
     $stmt->bind_param("i", $id);
     $stmt->execute();
     echo "<script>
-        document.body.innerHTML = '<h2 style=\"text-align:center;\">Deleting... Please wait</h2>';
+        document.body.innerHTML = '<h2 style=\"text-align:center; font-family:sans-serif;\">Deleting... Please wait</h2>';
         setTimeout(() => window.location.href = 'admin.php', 1500);
     </script>";
     exit();
 }
 
-// Load residents by purok
+// Load residents grouped by purok
 $sql = "SELECT * FROM `res-info` ORDER BY purok, lname, fname";
 $result = $conn->query($sql);
 
@@ -37,56 +37,78 @@ if ($result && $result->num_rows > 0) {
     }
 }
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Residents by Purok</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col items-center justify-start p-8">
 
-<link rel="stylesheet" href="/BRG-PULO/styles/styles.css">
+    <div class="w-full max-w-6xl">
+        <h1 class="text-3xl font-extrabold text-center text-blue-800 mb-10">👥 Residents Grouped by Purok</h1>
 
-<div class="container">
-    <h1>Populations by Purok</h1>
-    <div class="barangay-list">
-        <?php foreach ($residents as $purok => $people): ?>
-            <div class="barangay-box">
-                <h2><?= htmlspecialchars($purok) ?></h2>
-                <p>Total Residents: <?= count($people) ?></p>
-                <button onclick="togglePurok('purok_<?= $purok ?>')">View Residents</button>
-            </div>
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <?php foreach ($residents as $purok => $people): ?>
+                <div class="bg-white shadow-lg rounded-lg p-5 border border-blue-100">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-1">Purok: <?= htmlspecialchars($purok) ?></h2>
+                    <p class="mb-3 text-sm text-gray-600">Total Residents: <strong><?= count($people) ?></strong></p>
+                    <button onclick="togglePurok('purok_<?= $purok ?>')" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition">
+                        📋 View Residents
+                    </button>
+                </div>
 
-            <div id="purok_<?= $purok ?>" class="resident-table" style="display: none; margin-bottom: 40px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Profile</th>
-                            <th>Name</th>
-                            <th>Age</th>
-                            <th>DOB</th>
-                            <th>Status</th>
-                            <th>Contact</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($people as $person): ?>
-                            <tr>
-                                <td><img src="<?= $person['profile'] ?: 'images/sub/usericon.png' ?>" width="40" height="40" style="border-radius: 50%; object-fit: cover;"></td>
-                                <td><?= htmlspecialchars("{$person['fname']} {$person['mname']} {$person['lname']}") ?></td>
-                                <td><?= htmlspecialchars($person['age']) ?></td>
-                                <td><?= htmlspecialchars($person['dob']) ?></td>
-                                <td><?= htmlspecialchars($person['c-status']) ?></td>
-                                <td><?= htmlspecialchars($person['number']) ?></td>
-                                <td>
-                                    <a href="?delete=<?= $person['id'] ?>" onclick="return confirm('Delete this resident?')">Delete</a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endforeach; ?>
+                <div id="purok_<?= $purok ?>" class="col-span-3 mt-4 hidden transition-all duration-300 ease-in-out">
+                    <div class="overflow-x-auto bg-white border border-gray-200 shadow rounded-lg p-4">
+                        <table class="min-w-full text-sm text-left text-gray-700">
+                            <thead class="bg-gray-100 text-gray-900 uppercase text-xs tracking-wider">
+                                <tr>
+                                    <th class="p-3">Profile</th>
+                                    <th class="p-3">Name</th>
+                                    <th class="p-3">Age</th>
+                                    <th class="p-3">DOB</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Contact</th>
+                                    <th class="p-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($people as $person): ?>
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="p-3">
+                                            <img src="<?= htmlspecialchars($person['profile'] ?: './images/sub/usericon.png') ?>"
+                                                 alt="Profile"
+                                                 class="w-10 h-10 rounded-full object-cover border border-gray-300">
+                                        </td>
+                                        <td class="p-3"><?= htmlspecialchars("{$person['fname']} {$person['mname']} {$person['lname']}") ?></td>
+                                        <td class="p-3"><?= htmlspecialchars($person['age']) ?></td>
+                                        <td class="p-3"><?= htmlspecialchars($person['dob']) ?></td>
+                                        <td class="p-3"><?= htmlspecialchars($person['c-status']) ?></td>
+                                        <td class="p-3"><?= htmlspecialchars($person['number']) ?></td>
+                                        <td class="p-3">
+                                            <a href="?delete=<?= $person['id'] ?>"
+                                               onclick="return confirm('Are you sure you want to delete this resident?')"
+                                               class="inline-block bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                               🗑️ Delete
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
     </div>
-</div>
 
-<script>
-function togglePurok(id) {
-    const table = document.getElementById(id);
-    table.style.display = table.style.display === "none" ? "block" : "none";
-}
-</script>
+    <script>
+        function togglePurok(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+    </script>
+
+</body>
+</html>

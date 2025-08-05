@@ -1,6 +1,4 @@
 <?php
-// residents.php
-
 $host = "localhost";
 $username = "root";
 $password = "";
@@ -11,115 +9,72 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fixed: removed 'barangay' column which doesn't exist
 $sql = "SELECT * FROM `res-info` ORDER BY purok, lname, fname";
 $result = $conn->query($sql);
-
 if (!$result) {
     die("Query failed: " . $conn->error);
 }
 
 $residents = [];
-$puroks = [];
+$streets = [];
 
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $residents[] = $row;
-        if (!in_array($row['purok'], $puroks)) {
-            $puroks[] = $row['purok'];
+        if (!in_array($row['purok'], $streets)) {
+            $streets[] = $row['purok'];
         }
     }
 }
 
-sort($puroks); // optional
+sort($streets);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Resident Directory</title>
-    <link rel="stylesheet" href="/BRG-PULO/styles/styles.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Fallback style in case your CSS is not applied -->
-    <style>
-        .container {
-            max-width: 1000px;
-            margin: auto;
-            padding: 20px;
-        }
-
-        .filter-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .filter-container select,
-        .filter-container input {
-            padding: 8px;
-            font-size: 16px;
-        }
-
-        #resident-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .resident-item {
-            display: flex;
-            align-items: center;
-            border: 1px solid #ccc;
-            padding: 12px;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            gap: 15px;
-        }
-
-        .resident-item img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .resident-item .info {
-            flex: 1;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 p-4 font-sans">
 
-<div class="container">
-    <h1>Resident Directory</h1>
+<div class="max-w-6xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Resident Directory</h1>
 
     <!-- Filter Section -->
-    <div class="filter-container">
-        <select id="purok-filter" onchange="filterResidents()">
-            <option value="all">All Puroks</option>
-            <?php foreach ($puroks as $purok): ?>
-                <option value="<?= htmlspecialchars(strtolower($purok)) ?>"><?= htmlspecialchars($purok) ?></option>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+        <select id="street-filter" onchange="filterResidents()"
+                class="w-full sm:w-auto p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <option value="all">All Streets</option>
+            <?php foreach ($streets as $street): ?>
+                <option value="<?= htmlspecialchars(strtolower($street)) ?>"><?= htmlspecialchars($street) ?></option>
             <?php endforeach; ?>
         </select>
 
-        <input type="text" id="search-input" placeholder="Search for a resident..." onkeyup="filterResidents()">
+        <input type="text" id="search-input" placeholder="Search for a resident..."
+               onkeyup="filterResidents()"
+               class="w-full sm:w-64 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
     </div>
 
-    <!-- Resident List Section -->
-    <div id="resident-list">
+    <!-- Residents List -->
+    <div id="resident-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <?php foreach ($residents as $resident): ?>
-            <div class="resident-item" 
-                 data-name="<?= strtolower($resident['fname'] . ' ' . $resident['mname'] . ' ' . $resident['lname']) ?>" 
-                 data-purok="<?= strtolower($resident['purok']) ?>">
-                <img src="<?= htmlspecialchars($resident['profile'] ?: '/BRG-PULO-REV/images/sub/usericon.png') ?>" alt="Profile">
-                <div class="info">
-                    <strong><?= htmlspecialchars($resident['fname']) ?> <?= htmlspecialchars($resident['mname']) ?> <?= htmlspecialchars($resident['lname']) ?></strong><br>
-                    Age: <?= htmlspecialchars($resident['age']) ?> | Status: <?= htmlspecialchars($resident['c-status']) ?><br>
-                    Contact: <?= htmlspecialchars($resident['number']) ?> | Purok: <?= htmlspecialchars($resident['purok']) ?><br>
-                    DOB: <?= htmlspecialchars($resident['dob']) ?>
+            <?php
+            $fullName = strtolower($resident['fname'] . ' ' . $resident['mname'] . ' ' . $resident['lname']);
+            $street = strtolower($resident['purok']); // We now treat purok as street
+            $image = htmlspecialchars(!empty($resident['profile']) ? $resident['profile'] : '../images/sub/usericon.png');
+            ?>
+            <div class="bg-white shadow rounded-lg flex p-4 gap-4 items-center resident-item"
+                 data-name="<?= $fullName ?>" data-street="<?= $street ?>">
+                <img src="<?= $image ?>" alt="Profile"
+                     class="w-16 h-16 object-cover rounded-full border border-gray-300">
+                <div class="flex-1 text-sm text-gray-700">
+                    <p class="font-semibold text-lg text-gray-800">
+                        <?= htmlspecialchars($resident['fname']) . ' ' . htmlspecialchars($resident['mname']) . ' ' . htmlspecialchars($resident['lname']) ?>
+                    </p>
+                    <p>Age: <?= htmlspecialchars($resident['age']) ?> | Status: <?= htmlspecialchars($resident['c-status']) ?></p>
+                    <p>Contact: <?= htmlspecialchars($resident['number']) ?> | Street: <?= htmlspecialchars($resident['purok']) ?></p>
+                    <p>DOB: <?= htmlspecialchars($resident['dob']) ?></p>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -128,18 +83,16 @@ sort($puroks); // optional
 
 <script>
     function filterResidents() {
-        var searchInput = document.getElementById('search-input').value.toLowerCase();
-        var selectedPurok = document.getElementById('purok-filter').value.toLowerCase();
-        var residents = document.querySelectorAll('.resident-item');
+        const searchInput = document.getElementById('search-input').value.toLowerCase();
+        const selectedStreet = document.getElementById('street-filter').value.toLowerCase();
+        const residents = document.querySelectorAll('.resident-item');
 
-        residents.forEach(function(resident) {
-            var name = resident.getAttribute('data-name');
-            var purok = resident.getAttribute('data-purok');
-
-            var matchesName = name.includes(searchInput);
-            var matchesPurok = (selectedPurok === 'all') || (purok === selectedPurok);
-
-            resident.style.display = (matchesName && matchesPurok) ? 'flex' : 'none';
+        residents.forEach(resident => {
+            const name = resident.getAttribute('data-name');
+            const street = resident.getAttribute('data-street');
+            const matchesName = name.includes(searchInput);
+            const matchesStreet = selectedStreet === 'all' || street === selectedStreet;
+            resident.style.display = (matchesName && matchesStreet) ? 'flex' : 'none';
         });
     }
 </script>

@@ -4,13 +4,15 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+$editData = null;
+
 // Handle delete
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
     $stmt = $conn->prepare("DELETE FROM `res-info` WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    echo "<script>alert('Resident deleted successfully.'); window.location.href = 'admin.php';</script>";
+    echo "<script>alert('Resident deleted successfully.'); window.location.href = 'admin.php?section=populations';</script>";
     exit();
 }
 
@@ -29,12 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_id'])) {
         $_POST['edit_id']
     );
     $stmt->execute();
-    echo "<script>alert('Resident updated successfully.'); window.location.href = 'admin.php';</script>";
+    echo "<script>alert('Resident updated successfully.'); window.location.href = 'admin.php?section=populations';</script>";
     exit();
 }
 
-// If edit is triggered, get resident data
-$editData = null;
+// Handle edit
 if (isset($_GET['edit'])) {
     $id = intval($_GET['edit']);
     $result = $conn->query("SELECT * FROM `res-info` WHERE id = $id");
@@ -43,214 +44,116 @@ if (isset($_GET['edit'])) {
     }
 }
 
-// Fetch all residents
+// Fetch residents
 $sql = "SELECT * FROM `res-info` ORDER BY purok, lname, fname";
 $result = $conn->query($sql);
 $residents = [];
-$puroks = [];
+$streets = [];
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $residents[] = $row;
-        if (!in_array($row['purok'], $puroks)) {
-            $puroks[] = $row['purok'];
+        if (!in_array($row['purok'], $streets)) {
+            $streets[] = $row['purok'];
         }
     }
 }
+sort($streets);
 ?>
 
-<style>
-/* ========== Layout & Modals ========== */
-.purok-box {
-    display: inline-block;
-    background: #e0e0e0;
-    padding: 10px;
-    margin: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    width: 150px;
-    text-align: center;
-}
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    margin-left: 100px;
-}
-
-.modal-overlay.active {
-    display: flex;
-}
-
-.modal-content {
-    background: #fff;
-    padding: 20px;
-    max-height: 90vh;
-    overflow-y: auto;
-    width: 800px;
-    border-radius: 10px;
-    position: relative;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
-}
-
-.modal-close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-/* ========== Buttons ========== */
-a.button, button {
-    background-color: #007bff;
-    color: white;
-    padding: 8px 14px;
-    border: none;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-    display: inline-block;
-}
-
-a.button:hover, button:hover {
-    background-color: #0056b3;
-}
-
-/* ========== Form Styling ========== */
-.edit-form input {
-    width: 100%;
-    margin: 8px 0;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-.edit-form h3 {
-    margin-bottom: 15px;
-}
-
-/* ========== Responsive ========== */
-@media screen and (max-width: 600px) {
-    .modal-content {
-        width: 90%;
-        margin-right: 0;
-    }
-
-    a.button, button {
-        font-size: 13px;
-        padding: 8px 10px;
-    }
-
-    .purok-box {
-        width: 100%;
-        margin: 5px 0;
-    }
-}
-</style>
-
-<div class="resident-table-container">
-    <h2>All Residents by Purok</h2>
-
-    <?php foreach ($puroks as $purok): ?>
-        <div class="purok-box" onclick="openPurokModal('modal_<?= $purok ?>')">
-            <strong>Purok <?= htmlspecialchars($purok) ?></strong>
-        </div>
-
-        <div id="modal_<?= $purok ?>" class="modal-overlay">
-            <div class="modal-content">
-                <span class="modal-close">&times;</span>
-                <h2>Residents in Purok <?= htmlspecialchars($purok) ?></h2>
-                <table border="1" cellpadding="5" cellspacing="0" style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th>Profile</th>
-                            <th>Name</th>
-                            <th>Age</th>
-                            <th>DOB</th>
-                            <th>Status</th>
-                            <th>Contact</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($residents as $person): ?>
-                            <?php if ($person['purok'] == $purok): ?>
-                                <tr>
-                                    <td><img src="<?= $person['profile'] ?: 'images/sub/usericon.png' ?>" width="40" height="40" style="border-radius:50%; object-fit:cover;"></td>
-                                    <td><?= htmlspecialchars($person['fname'] . ' ' . $person['mname'] . ' ' . $person['lname']) ?></td>
-                                    <td><?= htmlspecialchars($person['age']) ?></td>
-                                    <td><?= htmlspecialchars($person['dob']) ?></td>
-                                    <td><?= htmlspecialchars($person['c-status']) ?></td>
-                                    <td><?= htmlspecialchars($person['number']) ?></td>
-                                    <td>
-                                        <a href="admin.php?edit=<?= $person['id'] ?>" class="button">Edit</a>
-                                        <a href="admin.php?delete=<?= $person['id'] ?>" class="button" onclick="return confirm('Delete this resident?')">Delete</a>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<!-- STREETS BOXES -->
+<div class="p-4">
+  <h2 class="text-2xl font-bold mb-4 text-gray-800">All Residents by Street</h2>
+  <div class="flex flex-wrap gap-4 mb-8">
+    <?php foreach ($streets as $street): ?>
+      <div class="cursor-pointer bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 py-4 rounded-lg shadow text-center"
+           onclick="openModal('modal_<?= $street ?>')">
+        <strong><?= htmlspecialchars($street) ?></strong>
+      </div>
     <?php endforeach; ?>
+  </div>
 </div>
 
-<script>
-function openPurokModal(id) {
-    document.getElementById(id).classList.add('active');
-}
+<!-- MODALS PER STREET -->
+<?php foreach ($streets as $street): ?>
+  <div id="modal_<?= $street ?>" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white max-w-5xl w-full p-6 rounded-lg shadow-lg relative overflow-y-auto max-h-[90vh] flex flex-col">
+      <button onclick="closeModal('modal_<?= $street ?>')" class="absolute top-2 right-4 text-gray-600 text-2xl font-bold hover:text-red-500">&times;</button>
+      <h2 class="text-xl font-bold mb-4 text-gray-800">Residents in Street: <?= htmlspecialchars($street) ?></h2>
 
-document.querySelectorAll('.modal-close').forEach(btn => {
-    btn.addEventListener('click', function () {
-        const modal = this.closest('.modal-overlay');
-        modal.classList.remove('active');
-    });
-});
-
-document.querySelectorAll('.modal-overlay').forEach(modal => {
-    modal.addEventListener('click', function (e) {
-        if (e.target === modal) {
-            modal.classList.remove('active');
-        }
-    });
-});
-</script>
-
-<?php if ($editData): ?>
-<!-- Floating Edit Modal -->
-<div class="modal-overlay active" id="editModal">
-    <div class="modal-content edit-form">
-        <span class="modal-close" onclick="closeEditModal()">&times;</span>
-        <h3>Edit Resident</h3>
-        <form method="POST" action="admin.php">
-            <input type="hidden" name="edit_id" value="<?= $editData['id'] ?>">
-            <input type="text" name="fname" value="<?= htmlspecialchars($editData['fname']) ?>" placeholder="First Name" required>
-            <input type="text" name="mname" value="<?= htmlspecialchars($editData['mname']) ?>" placeholder="Middle Name" required>
-            <input type="text" name="lname" value="<?= htmlspecialchars($editData['lname']) ?>" placeholder="Last Name" required>
-            <input type="number" name="age" value="<?= htmlspecialchars($editData['age']) ?>" placeholder="Age" required>
-            <input type="date" name="dob" value="<?= htmlspecialchars($editData['dob']) ?>" required>
-            <input type="text" name="c_status" value="<?= htmlspecialchars($editData['c-status']) ?>" placeholder="Civil Status" required>
-            <input type="text" name="number" value="<?= htmlspecialchars($editData['number']) ?>" placeholder="Contact Number" required>
-            <button type="submit" class="button">Save Changes</button>
-        </form>
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white text-sm border border-gray-200">
+          <thead class="bg-gray-100 text-gray-700 font-semibold">
+            <tr>
+              <th class="px-4 py-2">Profile</th>
+              <th class="px-4 py-2">Name</th>
+              <th class="px-4 py-2">Age</th>
+              <th class="px-4 py-2">DOB</th>
+              <th class="px-4 py-2">Status</th>
+              <th class="px-4 py-2">Contact</th>
+              <th class="px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($residents as $person): ?>
+              <?php if ($person['purok'] == $street): ?>
+                <tr class="border-t">
+                  <td class="p-2 text-center">
+                    <img src="<?= $person['profile'] ?: 'images/sub/usericon.png' ?>" alt="Profile"
+                         class="w-10 h-10 rounded-full object-cover inline-block">
+                  </td>
+                  <td class="p-2"><?= htmlspecialchars($person['fname'] . ' ' . $person['mname'] . ' ' . $person['lname']) ?></td>
+                  <td class="p-2"><?= htmlspecialchars($person['age']) ?></td>
+                  <td class="p-2"><?= htmlspecialchars($person['dob']) ?></td>
+                  <td class="p-2"><?= htmlspecialchars($person['c-status']) ?></td>
+                  <td class="p-2"><?= htmlspecialchars($person['number']) ?></td>
+                  <td class="p-2 flex flex-wrap gap-2">
+                    <a href="admin.php?edit=<?= $person['id'] ?>" class="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500">Edit</a>
+                    <a href="admin.php?delete=<?= $person['id'] ?>" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                       onclick="return confirm('Are you sure you want to delete this resident?')">Delete</a>
+                  </td>
+                </tr>
+              <?php endif; ?>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
     </div>
-</div>
+  </div>
+<?php endforeach; ?>
 
+<!-- EDIT MODAL -->
+<?php if ($editData): ?>
+  <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white w-full max-w-lg p-6 rounded-lg shadow-lg relative">
+      <button onclick="window.location.href='admin.php?section=populations'" class="absolute top-2 right-4 text-gray-600 text-2xl font-bold hover:text-red-500">&times;</button>
+      <h3 class="text-lg font-bold mb-4">Edit Resident</h3>
+      <form method="POST" action="admin.php" class="space-y-3">
+        <input type="hidden" name="edit_id" value="<?= $editData['id'] ?>">
+        <input type="text" name="fname" value="<?= htmlspecialchars($editData['fname']) ?>" placeholder="First Name" required class="w-full border px-3 py-2 rounded">
+        <input type="text" name="mname" value="<?= htmlspecialchars($editData['mname']) ?>" placeholder="Middle Name" required class="w-full border px-3 py-2 rounded">
+        <input type="text" name="lname" value="<?= htmlspecialchars($editData['lname']) ?>" placeholder="Last Name" required class="w-full border px-3 py-2 rounded">
+        <input type="number" name="age" value="<?= htmlspecialchars($editData['age']) ?>" placeholder="Age" required class="w-full border px-3 py-2 rounded">
+        <input type="date" name="dob" value="<?= htmlspecialchars($editData['dob']) ?>" required class="w-full border px-3 py-2 rounded">
+        <input type="text" name="c_status" value="<?= htmlspecialchars($editData['c-status']) ?>" placeholder="Civil Status" required class="w-full border px-3 py-2 rounded">
+        <input type="text" name="number" value="<?= htmlspecialchars($editData['number']) ?>" placeholder="Contact Number" required class="w-full border px-3 py-2 rounded">
+        <div class="text-right">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<?php endif; ?>
+
+<!-- SCRIPTS -->
 <script>
-function closeEditModal() {
-    document.getElementById('editModal').classList.remove('active');
-    window.location.href = 'admin.php';
+function openModal(id) {
+  const modal = document.getElementById(id);
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  modal.classList.remove('flex');
+  modal.classList.add('hidden');
 }
 </script>
-<?php endif; ?>

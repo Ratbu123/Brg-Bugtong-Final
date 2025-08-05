@@ -1,62 +1,69 @@
-// Toggle visibility of content sections in sidebar navigation
+// ========== Sidebar Navigation ========== //
 function showSection(id, event) {
-    // Hide all content sections
+    // Hide all sections
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
     });
 
-    // Remove active class from all nav links
+    // Remove 'active' from all links
     document.querySelectorAll('.sidebar nav a').forEach(link => {
         link.classList.remove('active');
     });
 
-    // Show the selected section
-    document.getElementById(id).style.display = 'block';
+    // Show selected section
+    const target = document.getElementById(id);
+    if (target) {
+        target.style.display = 'block';
+    }
 
-    // Highlight the active link
-    if (event && event.currentTarget) {
+    // Set clicked link as active
+    if (event?.currentTarget) {
         event.currentTarget.classList.add('active');
     }
 }
 
-// Show the dashboard section by default when page loads
-window.onload = () => {
-    showSection('dashboard', { currentTarget: document.querySelector('.sidebar nav a.active') });
-};
+// On page load, show dashboard section
+window.addEventListener('DOMContentLoaded', () => {
+    const defaultLink = document.querySelector('.sidebar nav a.active') || document.querySelector('.sidebar nav a');
+    if (defaultLink) {
+        showSection(defaultLink.getAttribute('data-section') || 'dashboard', { currentTarget: defaultLink });
+    }
+});
 
-// Preview selected image before upload
+// ========== Image Preview Before Upload ========== //
 function previewImage(event) {
     const input = event.target;
-    const previewImage = document.getElementById('preview-image');
+    const preview = document.getElementById('preview-image');
 
-    if (input.files && input.files[0]) {
+    if (input.files?.[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImage.src = e.target.result;
+        reader.onload = e => {
+            if (preview) preview.src = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
     }
 }
 
-// Modal functionality for "View All" buttons
+// ========== View All Modal Functionality ========== //
 document.querySelectorAll('.view-all-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-        const barangay = this.getAttribute('data-barangay');
-        const modalId = 'modal-' + barangay.toLowerCase().replace(/\s+/g, '-');
+    btn.addEventListener('click', () => {
+        const barangay = btn.getAttribute('data-barangay');
+        const modalId = `modal-${barangay.toLowerCase().replace(/\s+/g, '-')}`;
         const modal = document.getElementById(modalId);
         if (modal) modal.style.display = 'block';
     });
 });
 
-// Close modal when the close (×) is clicked
+// ========== Close Modal (× button) ========== //
 document.querySelectorAll('.modal .close').forEach(closeBtn => {
-    closeBtn.addEventListener('click', function () {
-        this.closest('.modal').style.display = 'none';
+    closeBtn.addEventListener('click', () => {
+        const modal = closeBtn.closest('.modal');
+        if (modal) modal.style.display = 'none';
     });
 });
 
-// Close modal if user clicks outside the modal content
-window.addEventListener('click', function (event) {
+// ========== Close Modal on Outside Click ========== //
+window.addEventListener('click', event => {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
     }

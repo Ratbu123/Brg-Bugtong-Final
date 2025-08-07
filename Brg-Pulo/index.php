@@ -253,17 +253,52 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['send_contact'])) {
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
     <ul class="space-y-2">
       <li>📘 facebook.com/buqtpnp</li>
-      <li>📧 barangay@bpulo.gov</li>
+      <li>📧 bugtongnapulo08@gmail.com</li>
       <li>📱 0927-123-4567</li>
     </ul>
-    <form class="space-y-4" method="POST" action="#contact">
-      <input type="text" name="contact_name" placeholder="Your Name" class="w-full p-2 border rounded" required>
-      <input type="email" name="contact_email" placeholder="Your Email" class="w-full p-2 border rounded" required>
-      <textarea name="contact_message" placeholder="Your Message" class="w-full p-2 border rounded" required></textarea>
-      <button type="submit" name="send_contact" class="bg-blue-700 text-white px-4 py-2 rounded">Send</button>
+    <form class="space-y-4 bg-white p-6 rounded-lg shadow" method="POST" action="#contact" onsubmit="return validateContactForm()">
+      <div>
+        <label for="contact_name" class="block text-sm font-medium text-gray-700">Your Name</label>
+        <input type="text" id="contact_name" name="contact_name" placeholder="Your Name" class="w-full p-2 border rounded" required>
+      </div>
+      <div>
+        <label for="contact_email" class="block text-sm font-medium text-gray-700">Your Email</label>
+        <input type="email" id="contact_email" name="contact_email" placeholder="Your Email" class="w-full p-2 border rounded" required>
+      </div>
+      <div>
+        <label for="contact_message" class="block text-sm font-medium text-gray-700">Your Message</label>
+        <textarea id="contact_message" name="contact_message" placeholder="Please describe your concern in detail..." class="w-full p-2 border rounded" rows="5" required></textarea>
+      </div>
+      <button type="submit" name="send_contact" class="bg-blue-700 text-white px-4 py-2 rounded w-full">Send</button>
     </form>
   </div>
 </section>
+
+<script>
+function validateContactForm() {
+  const name = document.getElementById('contact_name').value.trim();
+  const email = document.getElementById('contact_email').value.trim();
+  const message = document.getElementById('contact_message').value.trim();
+
+  if (!name || !email || !message) {
+    alert('❗ Please fill in all fields.');
+    return false;
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(email)) {
+    alert('❗ Please enter a valid email address.');
+    return false;
+  }
+
+  if (message.length < 10) {
+    alert('❗ Message should be at least 10 characters long.');
+    return false;
+  }
+
+  return true;
+}
+</script>
 
 <!-- Request Certificate Modal -->
 <div id="formModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 <?= isset($_SESSION['success']) || !empty($message) ? '' : 'hidden' ?>">
@@ -294,6 +329,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['send_contact'])) {
         <select name="certificate" required class="w-full p-2 border rounded">
           <option value="Certificate of Indigency">Certificate of Indigency</option>
           <option value="Certificate of Residency">Certificate of Residency</option>
+          <option value="Certificate of Barangay Clearance">Certificate of Barangay Clearance</option>
         </select>
       </div>
       <input type="hidden" name="date" value="<?= date('Y-m-d') ?>">
